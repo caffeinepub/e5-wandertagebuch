@@ -5,6 +5,7 @@ import {
   Car,
   Clock,
   Home,
+  Loader2,
   LogIn,
   MapPin,
   Mountain,
@@ -181,7 +182,12 @@ export default function Stage() {
   const navigate = useNavigate();
   const stageId = BigInt(params.id);
 
-  const { login: handleLogin, isAuthenticated, identity } = useAuth();
+  const {
+    login: handleLogin,
+    isAuthenticated,
+    isLoggingIn,
+    identity,
+  } = useAuth();
 
   const { data: stage, isLoading: stageLoading } = useStage(stageId);
   const { data: photos, isLoading: photosLoading } = usePhotos(stageId);
@@ -640,11 +646,21 @@ export default function Stage() {
               variant="outline"
               size="sm"
               onClick={() => void handleLogin()}
+              disabled={isLoggingIn}
               className="flex items-center gap-1.5 text-xs"
               data-ocid="stage-login-btn"
             >
-              <LogIn className="w-3.5 h-3.5" />
-              Anmelden zum Hochladen
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Anmelden…
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-3.5 h-3.5" />
+                  Anmelden zum Hochladen
+                </>
+              )}
             </Button>
           )}
         </div>
@@ -671,7 +687,6 @@ export default function Stage() {
                 ref={fileRef}
                 type="file"
                 accept="image/*"
-                capture="environment"
                 onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
                 className="cursor-pointer"
                 data-ocid="photo-file-input"
@@ -775,10 +790,20 @@ export default function Stage() {
               size="sm"
               variant="outline"
               onClick={() => void handleLogin()}
+              disabled={isLoggingIn}
               data-ocid="upload-login-btn"
             >
-              <LogIn className="w-3.5 h-3.5 mr-1.5" />
-              Anmelden
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  Anmelden…
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-3.5 h-3.5 mr-1.5" />
+                  Anmelden
+                </>
+              )}
             </Button>
           </div>
         )}

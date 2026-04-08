@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { LogIn, LogOut, Mountain } from "lucide-react";
+import { Loader2, LogIn, LogOut, Mountain } from "lucide-react";
 import type { ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Button } from "./ui/button";
@@ -12,6 +12,7 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const {
     isAuthenticated,
+    isLoggingIn,
     login: handleLogin,
     logout: handleLogout,
   } = useAuth();
@@ -56,11 +57,21 @@ export function Layout({ children }: LayoutProps) {
               variant="outline"
               size="sm"
               onClick={() => void handleLogin()}
+              disabled={isLoggingIn}
               className="flex-shrink-0"
               data-ocid="header-login"
             >
-              <LogIn className="w-3.5 h-3.5 mr-1.5" />
-              Anmelden
+              {isLoggingIn ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  Anmelden…
+                </>
+              ) : (
+                <>
+                  <LogIn className="w-3.5 h-3.5 mr-1.5" />
+                  Anmelden
+                </>
+              )}
             </Button>
           )}
         </div>
