@@ -1,17 +1,10 @@
-// Version: 3.0.0
+// Version: 1.0.0
 type ExternalBlob__246066408 = Blob;
 type GpxData__732540083 =
   {
     blob : ExternalBlob__246066408;
     stageId : StageId__298190877;
-    uploadedAt : Timestamp__301639476
-  };
-type List__415060402<T> = List__790383201<T>;
-type List__790383201<T> =
-  {
-    var blockIndex : Nat__490723111;
-    var blocks : [var [var ?T]];
-    var elementIndex : Nat__490723111
+    uploadedAt : Int
   };
 type Nat__490723111 = Nat__920180692;
 type Nat__920180692 = Nat;
@@ -20,57 +13,39 @@ type Photo__435490742 =
   {
     blob : ExternalBlob__246066408;
     description : Text;
-    elevation : ?Nat;
+    elevation : ?Float;
     id : PhotoId__38188305;
     stageId : StageId__298190877;
-    timestamp : Timestamp__301639476;
+    timestamp : Int;
     uploadedBy : Principal
   };
 type StageId__298190877 = Nat;
 type Stage__342920861 =
   {
     accommodation : Text;
+    ascentM : Int;
     dateFrom : Text;
     dateTo : Text;
-    distanceKm : Nat;
-    elevationGainM : Nat;
-    elevationLossM : Nat;
-    endElevation : Nat;
+    descentM : Int;
+    distanceKm : Float;
+    endElevation : Int;
     endLocation : Text;
-    estimatedTimeH : Nat;
-    highlight : Text;
+    estimatedTimeH : Float;
     id : StageId__298190877;
     isGipfeltag : Bool;
     number : Nat;
-    startElevation : Nat;
+    startElevation : Int;
     startLocation : Text;
     taxiInfo : ?TaxiInfo__225804432
   };
 type TaxiInfo__225804432 =
   {
-    company : Text;
     departureLocation : Text;
     departureTime : Text;
     phone : Text;
     pricePerPerson : Text
   };
-type Timestamp__301639476 = Int;
-actor ({
-  stable gpxFiles :
-    {
-      var blockIndex : Nat__490723111;
-      var blocks : [var [var ?GpxData__732540083]];
-      var elementIndex : Nat__490723111
-    };
-  stable var nextPhotoId : Nat;
-  in photos : List__415060402<Photo__435490742>;
-  stable stages :
-    {
-      var blockIndex : Nat__490723111;
-      var blocks : [var [var ?Stage__342920861]];
-      var elementIndex : Nat__490723111
-    }
-}, {
+actor {
   stable gpxFiles :
     {
       var blockIndex : Nat__490723111;
@@ -90,4 +65,4 @@ actor ({
       var blocks : [var [var ?Stage__342920861]];
       var elementIndex : Nat__490723111
     }
-}) ;
+};

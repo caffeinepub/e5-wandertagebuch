@@ -20,11 +20,31 @@ function haversineKm(
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+export interface GpxResult {
+  /** Elevation profile points with cumulative distance */
+  points: ElevationPoint[];
+  /** Total track distance in km (rounded to 2 decimal places) */
+  distanceKm: number;
+  /** Total ascent in meters (sum of all positive elevation gains ≥ 2 m) */
+  ascentM: number;
+  /** Total descent in meters (sum of all negative elevation drops ≥ 2 m, always positive) */
+  descentM: number;
+  /** Raw lat/lon coordinates for map rendering */
+  coordinates: { lat: number; lon: number }[];
+}
+
 /**
- * Parse a GPX XML string and return ElevationPoint[] with cumulative distances.
- * Filters duplicate consecutive points and rounds distance to 2 decimal places.
+ * Parse a GPX XML string and return elevation points, statistics, and coordinates.
+ * - Filters duplicate consecutive points
+ * - Calculates cumulative distance using Haversine formula
+ * - Calculates ascent/descent with a minimum threshold of 2 m
  */
-export function parseGpx(gpxXml: string): ElevationPoint[] {
+export function parseGpx(gpxXml: string): ElevationPoint[];
+export function parseGpx(gpxXml: string, full: true): GpxResult;
+export function parseGpx(
+  gpxXml: string,
+  full?: true,
+): ElevationPoint[] | GpxResult {
   const parser = new DOMParser();
   const doc = parser.parseFromString(gpxXml, "application/xml");
 
@@ -65,19 +85,41 @@ export function parseGpx(gpxXml: string): ElevationPoint[] {
   }
 
   const points: ElevationPoint[] = [];
+  const coordinates: { lat: number; lon: number }[] = [];
   let cumKm = 0;
+  let ascentM = 0;
+  let descentM = 0;
 
   for (let i = 0; i < raw.length; i++) {
     if (i > 0) {
       const prev = raw[i - 1];
       const curr = raw[i];
       cumKm += haversineKm(prev.lat, prev.lon, curr.lat, curr.lon);
+
+      // Ascent/descent calculation with 2 m threshold
+      const elevDiff = curr.ele - prev.ele;
+      if (elevDiff >= 2) {
+        ascentM += elevDiff;
+      } else if (elevDiff <= -2) {
+        descentM += Math.abs(elevDiff);
+      }
     }
     points.push({
       distance: Math.round(cumKm * 100) / 100,
       elevation: Math.round(raw[i].ele),
     });
+    coordinates.push({ lat: raw[i].lat, lon: raw[i].lon });
   }
 
-  return points;
+  if (!full) {
+    return points;
+  }
+
+  return {
+    points,
+    distanceKm: Math.round(cumKm * 100) / 100,
+    ascentM: Math.round(ascentM),
+    descentM: Math.round(descentM),
+    coordinates,
+  };
 }

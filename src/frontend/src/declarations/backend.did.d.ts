@@ -14,51 +14,48 @@ export type ExternalBlob = Uint8Array;
 export interface GpxData {
   'stageId' : StageId,
   'blob' : ExternalBlob,
-  'uploadedAt' : Timestamp,
+  'uploadedAt' : bigint,
 }
 export interface Photo {
   'id' : PhotoId,
-  'elevation' : [] | [bigint],
+  'elevation' : [] | [number],
   'stageId' : StageId,
   'blob' : ExternalBlob,
   'description' : string,
-  'timestamp' : Timestamp,
+  'timestamp' : bigint,
   'uploadedBy' : Principal,
 }
 export type PhotoId = bigint;
 export interface PhotoInput {
-  'elevation' : [] | [bigint],
+  'elevation' : [] | [number],
   'stageId' : StageId,
   'blob' : ExternalBlob,
   'description' : string,
 }
 export interface Stage {
   'id' : StageId,
+  'ascentM' : bigint,
   'dateTo' : string,
   'endElevation' : bigint,
   'startElevation' : bigint,
   'taxiInfo' : [] | [TaxiInfo],
   'accommodation' : string,
-  'estimatedTimeH' : bigint,
-  'elevationLossM' : bigint,
-  'distanceKm' : bigint,
+  'estimatedTimeH' : number,
+  'distanceKm' : number,
   'isGipfeltag' : boolean,
   'endLocation' : string,
-  'elevationGainM' : bigint,
   'number' : bigint,
   'dateFrom' : string,
   'startLocation' : string,
-  'highlight' : string,
+  'descentM' : bigint,
 }
 export type StageId = bigint;
 export interface TaxiInfo {
   'departureLocation' : string,
   'departureTime' : string,
   'pricePerPerson' : string,
-  'company' : string,
   'phone' : string,
 }
-export type Timestamp = bigint;
 export interface _ImmutableObjectStorageCreateCertificateResult {
   'method' : string,
   'blob_hash' : string,
@@ -91,15 +88,11 @@ export interface _SERVICE {
   '_immutableObjectStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   'addPhoto' : ActorMethod<[PhotoInput], Photo>,
   'deletePhoto' : ActorMethod<[PhotoId], boolean>,
-  'getGpx' : ActorMethod<[StageId], { 'ok' : GpxData } | { 'err' : string }>,
+  'getGpx' : ActorMethod<[StageId], [] | [GpxData]>,
   'getPhotos' : ActorMethod<[StageId], Array<Photo>>,
   'getStage' : ActorMethod<[StageId], [] | [Stage]>,
   'getStages' : ActorMethod<[], Array<Stage>>,
-  'uploadGpx' : ActorMethod<
-    [StageId, ExternalBlob],
-    { 'ok' : null } |
-      { 'err' : string }
-  >,
+  'uploadGpx' : ActorMethod<[StageId, ExternalBlob], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

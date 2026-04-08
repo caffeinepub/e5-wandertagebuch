@@ -22,51 +22,48 @@ export const _ImmutableObjectStorageRefillResult = IDL.Record({
 export const StageId = IDL.Nat;
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const PhotoInput = IDL.Record({
-  'elevation' : IDL.Opt(IDL.Nat),
+  'elevation' : IDL.Opt(IDL.Float64),
   'stageId' : StageId,
   'blob' : ExternalBlob,
   'description' : IDL.Text,
 });
 export const PhotoId = IDL.Nat;
-export const Timestamp = IDL.Int;
 export const Photo = IDL.Record({
   'id' : PhotoId,
-  'elevation' : IDL.Opt(IDL.Nat),
+  'elevation' : IDL.Opt(IDL.Float64),
   'stageId' : StageId,
   'blob' : ExternalBlob,
   'description' : IDL.Text,
-  'timestamp' : Timestamp,
+  'timestamp' : IDL.Int,
   'uploadedBy' : IDL.Principal,
 });
 export const GpxData = IDL.Record({
   'stageId' : StageId,
   'blob' : ExternalBlob,
-  'uploadedAt' : Timestamp,
+  'uploadedAt' : IDL.Int,
 });
 export const TaxiInfo = IDL.Record({
   'departureLocation' : IDL.Text,
   'departureTime' : IDL.Text,
   'pricePerPerson' : IDL.Text,
-  'company' : IDL.Text,
   'phone' : IDL.Text,
 });
 export const Stage = IDL.Record({
   'id' : StageId,
+  'ascentM' : IDL.Int,
   'dateTo' : IDL.Text,
-  'endElevation' : IDL.Nat,
-  'startElevation' : IDL.Nat,
+  'endElevation' : IDL.Int,
+  'startElevation' : IDL.Int,
   'taxiInfo' : IDL.Opt(TaxiInfo),
   'accommodation' : IDL.Text,
-  'estimatedTimeH' : IDL.Nat,
-  'elevationLossM' : IDL.Nat,
-  'distanceKm' : IDL.Nat,
+  'estimatedTimeH' : IDL.Float64,
+  'distanceKm' : IDL.Float64,
   'isGipfeltag' : IDL.Bool,
   'endLocation' : IDL.Text,
-  'elevationGainM' : IDL.Nat,
   'number' : IDL.Nat,
   'dateFrom' : IDL.Text,
   'startLocation' : IDL.Text,
-  'highlight' : IDL.Text,
+  'descentM' : IDL.Int,
 });
 
 export const idlService = IDL.Service({
@@ -98,19 +95,11 @@ export const idlService = IDL.Service({
   '_immutableObjectStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   'addPhoto' : IDL.Func([PhotoInput], [Photo], []),
   'deletePhoto' : IDL.Func([PhotoId], [IDL.Bool], []),
-  'getGpx' : IDL.Func(
-      [StageId],
-      [IDL.Variant({ 'ok' : GpxData, 'err' : IDL.Text })],
-      ['query'],
-    ),
+  'getGpx' : IDL.Func([StageId], [IDL.Opt(GpxData)], ['query']),
   'getPhotos' : IDL.Func([StageId], [IDL.Vec(Photo)], ['query']),
   'getStage' : IDL.Func([StageId], [IDL.Opt(Stage)], ['query']),
   'getStages' : IDL.Func([], [IDL.Vec(Stage)], ['query']),
-  'uploadGpx' : IDL.Func(
-      [StageId, ExternalBlob],
-      [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
-      [],
-    ),
+  'uploadGpx' : IDL.Func([StageId, ExternalBlob], [], []),
 });
 
 export const idlInitArgs = [];
@@ -130,51 +119,48 @@ export const idlFactory = ({ IDL }) => {
   const StageId = IDL.Nat;
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const PhotoInput = IDL.Record({
-    'elevation' : IDL.Opt(IDL.Nat),
+    'elevation' : IDL.Opt(IDL.Float64),
     'stageId' : StageId,
     'blob' : ExternalBlob,
     'description' : IDL.Text,
   });
   const PhotoId = IDL.Nat;
-  const Timestamp = IDL.Int;
   const Photo = IDL.Record({
     'id' : PhotoId,
-    'elevation' : IDL.Opt(IDL.Nat),
+    'elevation' : IDL.Opt(IDL.Float64),
     'stageId' : StageId,
     'blob' : ExternalBlob,
     'description' : IDL.Text,
-    'timestamp' : Timestamp,
+    'timestamp' : IDL.Int,
     'uploadedBy' : IDL.Principal,
   });
   const GpxData = IDL.Record({
     'stageId' : StageId,
     'blob' : ExternalBlob,
-    'uploadedAt' : Timestamp,
+    'uploadedAt' : IDL.Int,
   });
   const TaxiInfo = IDL.Record({
     'departureLocation' : IDL.Text,
     'departureTime' : IDL.Text,
     'pricePerPerson' : IDL.Text,
-    'company' : IDL.Text,
     'phone' : IDL.Text,
   });
   const Stage = IDL.Record({
     'id' : StageId,
+    'ascentM' : IDL.Int,
     'dateTo' : IDL.Text,
-    'endElevation' : IDL.Nat,
-    'startElevation' : IDL.Nat,
+    'endElevation' : IDL.Int,
+    'startElevation' : IDL.Int,
     'taxiInfo' : IDL.Opt(TaxiInfo),
     'accommodation' : IDL.Text,
-    'estimatedTimeH' : IDL.Nat,
-    'elevationLossM' : IDL.Nat,
-    'distanceKm' : IDL.Nat,
+    'estimatedTimeH' : IDL.Float64,
+    'distanceKm' : IDL.Float64,
     'isGipfeltag' : IDL.Bool,
     'endLocation' : IDL.Text,
-    'elevationGainM' : IDL.Nat,
     'number' : IDL.Nat,
     'dateFrom' : IDL.Text,
     'startLocation' : IDL.Text,
-    'highlight' : IDL.Text,
+    'descentM' : IDL.Int,
   });
   
   return IDL.Service({
@@ -206,19 +192,11 @@ export const idlFactory = ({ IDL }) => {
     '_immutableObjectStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     'addPhoto' : IDL.Func([PhotoInput], [Photo], []),
     'deletePhoto' : IDL.Func([PhotoId], [IDL.Bool], []),
-    'getGpx' : IDL.Func(
-        [StageId],
-        [IDL.Variant({ 'ok' : GpxData, 'err' : IDL.Text })],
-        ['query'],
-      ),
+    'getGpx' : IDL.Func([StageId], [IDL.Opt(GpxData)], ['query']),
     'getPhotos' : IDL.Func([StageId], [IDL.Vec(Photo)], ['query']),
     'getStage' : IDL.Func([StageId], [IDL.Opt(Stage)], ['query']),
     'getStages' : IDL.Func([], [IDL.Vec(Stage)], ['query']),
-    'uploadGpx' : IDL.Func(
-        [StageId, ExternalBlob],
-        [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
-        [],
-      ),
+    'uploadGpx' : IDL.Func([StageId, ExternalBlob], [], []),
   });
 };
 

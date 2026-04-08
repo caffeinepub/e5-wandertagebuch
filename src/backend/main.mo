@@ -3,9 +3,9 @@ import MixinObjectStorage "mo:caffeineai-object-storage/Mixin";
 import Types "types/stages-and-photos";
 import Lib "lib/stages-and-photos";
 import StagesAndPhotosApi "mixins/stages-and-photos-api";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   include MixinObjectStorage();
 

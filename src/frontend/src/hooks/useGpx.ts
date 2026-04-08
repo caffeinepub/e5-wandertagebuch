@@ -9,9 +9,7 @@ export function useGpx(stageId: bigint | null) {
     queryKey: ["gpx", stageId?.toString()],
     queryFn: async () => {
       if (!actor || stageId === null) return null;
-      const result = await actor.getGpx(stageId);
-      if (result.__kind__ === "ok") return result.ok;
-      return null;
+      return actor.getGpx(stageId);
     },
     enabled: !!actor && !isFetching && stageId !== null,
     staleTime: 5 * 60 * 1000,
@@ -27,8 +25,8 @@ export function useAllGpx(stageIds: bigint[]) {
       const entries: [string, GpxData][] = [];
       for (const stageId of stageIds) {
         const result = await actor.getGpx(stageId);
-        if (result.__kind__ === "ok") {
-          entries.push([stageId.toString(), result.ok]);
+        if (result !== null) {
+          entries.push([stageId.toString(), result]);
         }
       }
       return Object.fromEntries(entries);
@@ -79,8 +77,7 @@ export function useUploadGpx() {
         blob = blob.withUploadProgress(onProgress);
       }
 
-      const result = await actor.uploadGpx(stageId, blob);
-      if (result.__kind__ === "err") throw new Error(result.err);
+      await actor.uploadGpx(stageId, blob);
       return stageId;
     },
     onSuccess: (stageId) => {

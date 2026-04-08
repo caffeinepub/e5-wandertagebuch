@@ -16,35 +16,33 @@ export class ExternalBlob {
 }
 export interface Photo {
     id: PhotoId;
-    elevation?: bigint;
+    elevation?: number;
     stageId: StageId;
     blob: ExternalBlob;
     description: string;
-    timestamp: Timestamp;
+    timestamp: bigint;
     uploadedBy: Principal;
 }
 export interface Stage {
     id: StageId;
+    ascentM: bigint;
     dateTo: string;
     endElevation: bigint;
     startElevation: bigint;
     taxiInfo?: TaxiInfo;
     accommodation: string;
-    estimatedTimeH: bigint;
-    elevationLossM: bigint;
-    distanceKm: bigint;
+    estimatedTimeH: number;
+    distanceKm: number;
     isGipfeltag: boolean;
     endLocation: string;
-    elevationGainM: bigint;
     number: bigint;
     dateFrom: string;
     startLocation: string;
-    highlight: string;
+    descentM: bigint;
 }
-export type Timestamp = bigint;
 export type PhotoId = bigint;
 export interface PhotoInput {
-    elevation?: bigint;
+    elevation?: number;
     stageId: StageId;
     blob: ExternalBlob;
     description: string;
@@ -53,33 +51,20 @@ export interface TaxiInfo {
     departureLocation: string;
     departureTime: string;
     pricePerPerson: string;
-    company: string;
     phone: string;
 }
 export interface GpxData {
     stageId: StageId;
     blob: ExternalBlob;
-    uploadedAt: Timestamp;
+    uploadedAt: bigint;
 }
 export type StageId = bigint;
 export interface backendInterface {
     addPhoto(input: PhotoInput): Promise<Photo>;
     deletePhoto(photoId: PhotoId): Promise<boolean>;
-    getGpx(stageId: StageId): Promise<{
-        __kind__: "ok";
-        ok: GpxData;
-    } | {
-        __kind__: "err";
-        err: string;
-    }>;
+    getGpx(stageId: StageId): Promise<GpxData | null>;
     getPhotos(stageId: StageId): Promise<Array<Photo>>;
     getStage(id: StageId): Promise<Stage | null>;
     getStages(): Promise<Array<Stage>>;
-    uploadGpx(stageId: StageId, blob: ExternalBlob): Promise<{
-        __kind__: "ok";
-        ok: null;
-    } | {
-        __kind__: "err";
-        err: string;
-    }>;
+    uploadGpx(stageId: StageId, blob: ExternalBlob): Promise<void>;
 }

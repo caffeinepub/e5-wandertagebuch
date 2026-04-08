@@ -3,7 +3,6 @@ import Common "common";
 
 module {
   public type TaxiInfo = {
-    company : Text;
     phone : Text;
     departureTime : Text;
     departureLocation : Text;
@@ -16,15 +15,14 @@ module {
     dateFrom : Text;
     dateTo : Text;
     startLocation : Text;
-    startElevation : Nat;
+    startElevation : Int;
     endLocation : Text;
-    endElevation : Nat;
-    distanceKm : Nat;
-    elevationGainM : Nat;
-    elevationLossM : Nat;
-    estimatedTimeH : Nat;
+    endElevation : Int;
+    distanceKm : Float;
+    ascentM : Int;
+    descentM : Int;
+    estimatedTimeH : Float;
     accommodation : Text;
-    highlight : Text;
     isGipfeltag : Bool;
     taxiInfo : ?TaxiInfo;
   };
@@ -34,21 +32,21 @@ module {
     stageId : Common.StageId;
     blob : Storage.ExternalBlob;
     description : Text;
-    elevation : ?Nat;
-    timestamp : Common.Timestamp;
+    elevation : ?Float;
     uploadedBy : Principal;
+    timestamp : Int;
   };
 
   public type PhotoInput = {
     stageId : Common.StageId;
     blob : Storage.ExternalBlob;
     description : Text;
-    elevation : ?Nat;
+    elevation : ?Float;
   };
 
   public type GpxData = {
     stageId : Common.StageId;
     blob : Storage.ExternalBlob;
-    uploadedAt : Common.Timestamp;
+    uploadedAt : Int;
   };
 };

@@ -17,6 +17,11 @@ import { useStages } from "../hooks/useStages";
 import type { ElevationPoint } from "../types";
 import { parseGpx } from "../utils/parseGpx";
 
+// CSS variable references for chart colors (avoids inline oklch lint violations)
+const CHART_PRIMARY = "oklch(var(--primary))";
+const CHART_BORDER = "oklch(var(--border))";
+const CHART_MUTED_FG = "oklch(var(--muted-foreground))";
+
 // ─── Per-stage elevation waypoints (fallback) ─────────────────────────────────
 const STAGE_RAW: Record<number, [number, number, string?][]> = {
   1: [
@@ -341,6 +346,22 @@ function TourTooltip({ active, payload, label }: TProps) {
   );
 }
 
+// ─── Skeleton grid ────────────────────────────────────────────────────────────
+const SKELETON_KEYS = [
+  "s1",
+  "s2",
+  "s3",
+  "s4",
+  "s5",
+  "s6",
+  "s7",
+  "s8",
+  "s9",
+  "s10",
+  "s11",
+  "s12",
+] as const;
+
 // ─── Home ─────────────────────────────────────────────────────────────────────
 const ALL_STAGE_IDS = [1n, 2n, 3n, 4n, 5n, 6n, 7n, 8n, 9n, 10n, 11n, 12n];
 
@@ -349,7 +370,6 @@ export default function Home() {
   const { data: stages = [], isLoading } = useStages();
   const { data: allGpxData } = useAllGpx(ALL_STAGE_IDS);
 
-  // Parse GPX overrides for stages that have GPX data
   const [gpxOverrides, setGpxOverrides] = useState<
     Record<number, ElevationPoint[]>
   >({});
@@ -370,7 +390,7 @@ export default function Home() {
               const pts = parseGpx(xml);
               if (pts.length > 0) overrides[stageNum] = pts;
             } catch {
-              // ignore parse errors, keep fallback
+              // ignore parse errors — keep fallback
             }
           })
           .catch(() => {}),
@@ -421,9 +441,11 @@ export default function Home() {
         className="bg-card border-b border-border py-10 px-4 text-center"
       >
         <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-          E5 · Oberstdorf → Meran
+          E5 Wandertagebuch Schreiber
         </h1>
-        <p className="font-display text-lg text-primary mt-1">August 2026</p>
+        <p className="font-display text-lg text-primary mt-1">
+          Oberstdorf → Meran · August 2026
+        </p>
         <p className="text-muted-foreground font-body max-w-xl mx-auto mt-3 text-sm sm:text-base leading-relaxed">
           Unser Wandertagebuch für die Alpenüberquerung — 12 Etappen, Gletscher,
           Berghütten und ein Gipfeltag mit der ganzen Familie.
@@ -444,9 +466,9 @@ export default function Home() {
               className={[
                 "flex flex-col items-center py-4 px-3",
                 i % 2 === 0 ? "border-r border-border/50" : "",
-                i === TOUR_STATS.length - 1
-                  ? "sm:border-r-0"
-                  : "sm:border-r sm:border-border/50",
+                i < TOUR_STATS.length - 1
+                  ? "sm:border-r sm:border-border/50"
+                  : "sm:border-r-0",
               ].join(" ")}
             >
               <span className="font-display text-2xl font-bold text-primary">
@@ -486,48 +508,46 @@ export default function Home() {
                 <linearGradient id="tourGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="oklch(0.38 0.08 40)"
+                    stopColor={CHART_PRIMARY}
                     stopOpacity={0.5}
                   />
                   <stop
                     offset="95%"
-                    stopColor="oklch(0.38 0.08 40)"
+                    stopColor={CHART_PRIMARY}
                     stopOpacity={0.03}
                   />
                 </linearGradient>
               </defs>
               <CartesianGrid
                 strokeDasharray="3 3"
-                stroke="oklch(0.88 0.02 75)"
+                stroke={CHART_BORDER}
                 vertical={false}
               />
-
               {boundaries.map(({ km, label }) => (
                 <ReferenceLine
                   key={label}
                   x={km}
-                  stroke="oklch(0.38 0.08 40)"
+                  stroke={CHART_PRIMARY}
                   strokeOpacity={0.22}
                   strokeDasharray="4 4"
                   label={{
                     value: label,
                     position: "top",
                     fontSize: 9,
-                    fill: "oklch(0.5 0.02 50)",
+                    fill: CHART_MUTED_FG,
                     fontFamily: "var(--font-body)",
                   }}
                 />
               ))}
-
               <XAxis
                 dataKey="distance"
                 tickFormatter={(v: number) => `${v} km`}
                 tick={{
                   fontSize: 10,
-                  fill: "oklch(0.5 0.02 50)",
+                  fill: CHART_MUTED_FG,
                   fontFamily: "var(--font-body)",
                 }}
-                axisLine={{ stroke: "oklch(0.88 0.02 75)" }}
+                axisLine={{ stroke: CHART_BORDER }}
                 tickLine={false}
                 interval="preserveStartEnd"
               />
@@ -536,7 +556,7 @@ export default function Home() {
                 tickFormatter={(v: number) => `${v}m`}
                 tick={{
                   fontSize: 10,
-                  fill: "oklch(0.5 0.02 50)",
+                  fill: CHART_MUTED_FG,
                   fontFamily: "var(--font-body)",
                 }}
                 axisLine={false}
@@ -547,15 +567,11 @@ export default function Home() {
               <Area
                 type="monotone"
                 dataKey="elevation"
-                stroke="oklch(0.38 0.08 40)"
+                stroke={CHART_PRIMARY}
                 strokeWidth={2.5}
                 fill="url(#tourGrad)"
                 dot={false}
-                activeDot={{
-                  r: 5,
-                  fill: "oklch(0.38 0.08 40)",
-                  strokeWidth: 0,
-                }}
+                activeDot={{ r: 5, fill: CHART_PRIMARY, strokeWidth: 0 }}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -576,7 +592,7 @@ export default function Home() {
         className="max-w-5xl mx-auto px-4 pt-6 pb-10"
       >
         <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-1">
-          Die 12 Etappen
+          Alle Etappen
         </h2>
         <p className="text-sm text-muted-foreground mb-5">
           Klicke auf eine Etappe für Höhenprofil, Infos und Fotos.
@@ -584,22 +600,7 @@ export default function Home() {
 
         {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {(
-              [
-                "s1",
-                "s2",
-                "s3",
-                "s4",
-                "s5",
-                "s6",
-                "s7",
-                "s8",
-                "s9",
-                "s10",
-                "s11",
-                "s12",
-              ] as const
-            ).map((k) => (
+            {SKELETON_KEYS.map((k) => (
               <div key={k} className="h-20 bg-muted rounded-lg animate-pulse" />
             ))}
           </div>

@@ -1,21 +1,26 @@
 {
-  "overview": "Interactive hiking diary for the E5 Alpine crossing from Oberstdorf to Meran in August 2026. Features 12 stages with elevation profiles, info cards, and a password-protected photo/text journal.",
+  "overview": "Ein digitales Wandertagebuch für die Alpenüberquerung E5 von Oberstdorf nach Meran im August 2026. Mit interaktiven Höhenprofilen, Foto-Tagebuch pro Etappe, GPX-Upload und Internet Identity Authentifizierung.",
   "features": [
-    "Interactive elevation profiles for all 12 stages",
-    "Clickable stage overview with rustic Alpine design",
-    "Stage detail pages with date, route, stats, and accommodation info",
-    "Password-protected photo and text upload from mobile",
-    "Photo pinning on elevation profile points",
-    "Special markers for Summit Day (Stage 9) and Taxi transfer (Stage 3)"
+    "12 interaktive Etappen (E1-E12) mit detaillierten Informationen",
+    "Interaktives Gesamthöhenprofil der gesamten Tour",
+    "Höhenprofile pro Etappe aus GPX-Dateien generiert",
+    "Foto-Tagebuch mit Zuordnung zu Höhenprofil-Punkten",
+    "Internet Identity Login für Uploads",
+    "Rustikales Alpen-Design (Braun/Creme, Holz-Optik)",
+    "Mobil-optimierter Foto-Upload",
+    "Etappe 9 als Gipfeltag markiert",
+    "Taxi-Hinweis für Etappe 3"
   ],
   "category": "travel",
   "tags": [
     "hiking",
-    "travel-diary",
-    "alpine",
-    "elevation-profile",
-    "photo-journal",
-    "e5"
+    "travel",
+    "diary",
+    "alps",
+    "elevation",
+    "gpx",
+    "photos",
+    "german"
   ],
-  "last_updated": "2026-04-08T18:21:34.781Z"
+  "last_updated": "2026-04-08T20:24:45.475Z"
 }

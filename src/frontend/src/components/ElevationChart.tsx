@@ -10,6 +10,10 @@ import {
 } from "recharts";
 import type { ElevationPoint } from "../types";
 
+const CHART_PRIMARY = "oklch(var(--primary))";
+const CHART_BORDER = "oklch(var(--border))";
+const CHART_MUTED = "oklch(var(--muted-foreground))";
+
 interface PhotoMarker {
   elevation: number;
   id: string;
@@ -88,21 +92,13 @@ export function ElevationChart({
       >
         <defs>
           <linearGradient id="elevGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop
-              offset="5%"
-              stopColor="oklch(0.38 0.08 40)"
-              stopOpacity={0.45}
-            />
-            <stop
-              offset="95%"
-              stopColor="oklch(0.38 0.08 40)"
-              stopOpacity={0.03}
-            />
+            <stop offset="5%" stopColor={CHART_PRIMARY} stopOpacity={0.45} />
+            <stop offset="95%" stopColor={CHART_PRIMARY} stopOpacity={0.03} />
           </linearGradient>
         </defs>
         <CartesianGrid
           strokeDasharray="3 3"
-          stroke="oklch(0.88 0.02 75)"
+          stroke={CHART_BORDER}
           vertical={false}
         />
         <XAxis
@@ -110,10 +106,10 @@ export function ElevationChart({
           tickFormatter={(v: number) => `${v} km`}
           tick={{
             fontSize: 11,
-            fill: "oklch(0.5 0.02 50)",
+            fill: CHART_MUTED,
             fontFamily: "var(--font-body)",
           }}
-          axisLine={{ stroke: "oklch(0.88 0.02 75)" }}
+          axisLine={{ stroke: CHART_BORDER }}
           tickLine={false}
         />
         <YAxis
@@ -121,7 +117,7 @@ export function ElevationChart({
           tickFormatter={(v: number) => `${v}m`}
           tick={{
             fontSize: 11,
-            fill: "oklch(0.5 0.02 50)",
+            fill: CHART_MUTED,
             fontFamily: "var(--font-body)",
           }}
           axisLine={false}
@@ -132,11 +128,11 @@ export function ElevationChart({
         <Area
           type="monotone"
           dataKey="elevation"
-          stroke="oklch(0.38 0.08 40)"
+          stroke={CHART_PRIMARY}
           strokeWidth={2.5}
           fill="url(#elevGradient)"
           dot={false}
-          activeDot={{ r: 5, fill: "oklch(0.38 0.08 40)", strokeWidth: 0 }}
+          activeDot={{ r: 5, fill: CHART_PRIMARY, strokeWidth: 0 }}
         />
         {photoMarkers.map((marker) => (
           <ReferenceDot
@@ -144,7 +140,7 @@ export function ElevationChart({
             x={findClosestDistance(elevationPoints, marker.elevation)}
             y={marker.elevation}
             r={6}
-            fill="oklch(0.52 0.1 70)"
+            fill={CHART_PRIMARY}
             stroke="white"
             strokeWidth={2}
             label={{

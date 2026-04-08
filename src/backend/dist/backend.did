@@ -11,10 +11,8 @@ type _ImmutableObjectStorageCreateCertificateResult =
    blob_hash: text;
    method: text;
  };
-type Timestamp = int;
 type TaxiInfo = 
  record {
-   company: text;
    departureLocation: text;
    departureTime: text;
    phone: text;
@@ -24,19 +22,18 @@ type StageId = nat;
 type Stage = 
  record {
    accommodation: text;
+   ascentM: int;
    dateFrom: text;
    dateTo: text;
-   distanceKm: nat;
-   elevationGainM: nat;
-   elevationLossM: nat;
-   endElevation: nat;
+   descentM: int;
+   distanceKm: float64;
+   endElevation: int;
    endLocation: text;
-   estimatedTimeH: nat;
-   highlight: text;
+   estimatedTimeH: float64;
    id: StageId;
    isGipfeltag: bool;
    number: nat;
-   startElevation: nat;
+   startElevation: int;
    startLocation: text;
    taxiInfo: opt TaxiInfo;
  };
@@ -44,7 +41,7 @@ type PhotoInput =
  record {
    "blob": ExternalBlob;
    description: text;
-   elevation: opt nat;
+   elevation: opt float64;
    stageId: StageId;
  };
 type PhotoId = nat;
@@ -52,17 +49,17 @@ type Photo =
  record {
    "blob": ExternalBlob;
    description: text;
-   elevation: opt nat;
+   elevation: opt float64;
    id: PhotoId;
    stageId: StageId;
-   timestamp: Timestamp;
+   timestamp: int;
    uploadedBy: principal;
  };
 type GpxData = 
  record {
    "blob": ExternalBlob;
    stageId: StageId;
-   uploadedAt: Timestamp;
+   uploadedAt: int;
  };
 type ExternalBlob = blob;
 service : {
@@ -77,16 +74,9 @@ service : {
   _immutableObjectStorageUpdateGatewayPrincipals: () -> ();
   addPhoto: (input: PhotoInput) -> (Photo);
   deletePhoto: (photoId: PhotoId) -> (bool);
-  getGpx: (stageId: StageId) -> (variant {
-                                   err: text;
-                                   ok: GpxData;
-                                 }) query;
+  getGpx: (stageId: StageId) -> (opt GpxData) query;
   getPhotos: (stageId: StageId) -> (vec Photo) query;
   getStage: (id: StageId) -> (opt Stage) query;
   getStages: () -> (vec Stage) query;
-  uploadGpx: (stageId: StageId, "blob": ExternalBlob) ->
-   (variant {
-      err: text;
-      ok;
-    });
+  uploadGpx: (stageId: StageId, "blob": ExternalBlob) -> ();
 }

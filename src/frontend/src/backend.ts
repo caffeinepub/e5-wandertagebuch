@@ -91,38 +91,36 @@ export class ExternalBlob {
 }
 export interface Photo {
     id: PhotoId;
-    elevation?: bigint;
+    elevation?: number;
     stageId: StageId;
     blob: ExternalBlob;
     description: string;
-    timestamp: Timestamp;
+    timestamp: bigint;
     uploadedBy: Principal;
 }
 export interface Stage {
     id: StageId;
+    ascentM: bigint;
     dateTo: string;
     endElevation: bigint;
     startElevation: bigint;
     taxiInfo?: TaxiInfo;
     accommodation: string;
-    estimatedTimeH: bigint;
-    elevationLossM: bigint;
-    distanceKm: bigint;
+    estimatedTimeH: number;
+    distanceKm: number;
     isGipfeltag: boolean;
     endLocation: string;
-    elevationGainM: bigint;
     number: bigint;
     dateFrom: string;
     startLocation: string;
-    highlight: string;
+    descentM: bigint;
 }
-export type Timestamp = bigint;
 export type PhotoId = bigint;
 export interface _ImmutableObjectStorageRefillInformation {
     proposed_top_up_amount?: bigint;
 }
 export interface PhotoInput {
-    elevation?: bigint;
+    elevation?: number;
     stageId: StageId;
     blob: ExternalBlob;
     description: string;
@@ -131,7 +129,6 @@ export interface TaxiInfo {
     departureLocation: string;
     departureTime: string;
     pricePerPerson: string;
-    company: string;
     phone: string;
 }
 export interface _ImmutableObjectStorageCreateCertificateResult {
@@ -141,7 +138,7 @@ export interface _ImmutableObjectStorageCreateCertificateResult {
 export interface GpxData {
     stageId: StageId;
     blob: ExternalBlob;
-    uploadedAt: Timestamp;
+    uploadedAt: bigint;
 }
 export type StageId = bigint;
 export interface _ImmutableObjectStorageRefillResult {
@@ -157,25 +154,13 @@ export interface backendInterface {
     _immutableObjectStorageUpdateGatewayPrincipals(): Promise<void>;
     addPhoto(input: PhotoInput): Promise<Photo>;
     deletePhoto(photoId: PhotoId): Promise<boolean>;
-    getGpx(stageId: StageId): Promise<{
-        __kind__: "ok";
-        ok: GpxData;
-    } | {
-        __kind__: "err";
-        err: string;
-    }>;
+    getGpx(stageId: StageId): Promise<GpxData | null>;
     getPhotos(stageId: StageId): Promise<Array<Photo>>;
     getStage(id: StageId): Promise<Stage | null>;
     getStages(): Promise<Array<Stage>>;
-    uploadGpx(stageId: StageId, blob: ExternalBlob): Promise<{
-        __kind__: "ok";
-        ok: null;
-    } | {
-        __kind__: "err";
-        err: string;
-    }>;
+    uploadGpx(stageId: StageId, blob: ExternalBlob): Promise<void>;
 }
-import type { ExternalBlob as _ExternalBlob, GpxData as _GpxData, Photo as _Photo, PhotoId as _PhotoId, PhotoInput as _PhotoInput, Stage as _Stage, StageId as _StageId, TaxiInfo as _TaxiInfo, Timestamp as _Timestamp, _ImmutableObjectStorageRefillInformation as __ImmutableObjectStorageRefillInformation, _ImmutableObjectStorageRefillResult as __ImmutableObjectStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { ExternalBlob as _ExternalBlob, GpxData as _GpxData, Photo as _Photo, PhotoId as _PhotoId, PhotoInput as _PhotoInput, Stage as _Stage, StageId as _StageId, TaxiInfo as _TaxiInfo, _ImmutableObjectStorageRefillInformation as __ImmutableObjectStorageRefillInformation, _ImmutableObjectStorageRefillResult as __ImmutableObjectStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _immutableObjectStorageBlobsAreLive(arg0: Array<Uint8Array>): Promise<Array<boolean>> {
@@ -290,108 +275,102 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async getGpx(arg0: StageId): Promise<{
-        __kind__: "ok";
-        ok: GpxData;
-    } | {
-        __kind__: "err";
-        err: string;
-    }> {
+    async getGpx(arg0: StageId): Promise<GpxData | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getGpx(arg0);
-                return from_candid_variant_n14(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getGpx(arg0);
-            return from_candid_variant_n14(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n15(this._uploadFile, this._downloadFile, result);
         }
     }
     async getPhotos(arg0: StageId): Promise<Array<Photo>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getPhotos(arg0);
-                return from_candid_vec_n17(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n18(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getPhotos(arg0);
-            return from_candid_vec_n17(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n18(this._uploadFile, this._downloadFile, result);
         }
     }
     async getStage(arg0: StageId): Promise<Stage | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getStage(arg0);
-                return from_candid_opt_n18(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getStage(arg0);
-            return from_candid_opt_n18(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
         }
     }
     async getStages(): Promise<Array<Stage>> {
         if (this.processError) {
             try {
                 const result = await this.actor.getStages();
-                return from_candid_vec_n22(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n23(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getStages();
-            return from_candid_vec_n22(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n23(this._uploadFile, this._downloadFile, result);
         }
     }
-    async uploadGpx(arg0: StageId, arg1: ExternalBlob): Promise<{
-        __kind__: "ok";
-        ok: null;
-    } | {
-        __kind__: "err";
-        err: string;
-    }> {
+    async uploadGpx(arg0: StageId, arg1: ExternalBlob): Promise<void> {
         if (this.processError) {
             try {
                 const result = await this.actor.uploadGpx(arg0, await to_candid_ExternalBlob_n10(this._uploadFile, this._downloadFile, arg1));
-                return from_candid_variant_n23(this._uploadFile, this._downloadFile, result);
+                return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.uploadGpx(arg0, await to_candid_ExternalBlob_n10(this._uploadFile, this._downloadFile, arg1));
-            return from_candid_variant_n23(this._uploadFile, this._downloadFile, result);
+            return result;
         }
     }
 }
-async function from_candid_ExternalBlob_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExternalBlob): Promise<ExternalBlob> {
+async function from_candid_ExternalBlob_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ExternalBlob): Promise<ExternalBlob> {
     return await _downloadFile(value);
 }
-async function from_candid_GpxData_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _GpxData): Promise<GpxData> {
-    return await from_candid_record_n16(_uploadFile, _downloadFile, value);
+async function from_candid_GpxData_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _GpxData): Promise<GpxData> {
+    return await from_candid_record_n17(_uploadFile, _downloadFile, value);
 }
 async function from_candid_Photo_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Photo): Promise<Photo> {
     return await from_candid_record_n12(_uploadFile, _downloadFile, value);
 }
-function from_candid_Stage_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Stage): Stage {
-    return from_candid_record_n20(_uploadFile, _downloadFile, value);
+function from_candid_Stage_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Stage): Stage {
+    return from_candid_record_n21(_uploadFile, _downloadFile, value);
 }
 function from_candid__ImmutableObjectStorageRefillResult_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: __ImmutableObjectStorageRefillResult): _ImmutableObjectStorageRefillResult {
     return from_candid_record_n5(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Stage]): Stage | null {
-    return value.length === 0 ? null : from_candid_Stage_n19(_uploadFile, _downloadFile, value[0]);
+function from_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [number]): number | null {
+    return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_TaxiInfo]): TaxiInfo | null {
+async function from_candid_opt_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_GpxData]): Promise<GpxData | null> {
+    return value.length === 0 ? null : await from_candid_GpxData_n16(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Stage]): Stage | null {
+    return value.length === 0 ? null : from_candid_Stage_n20(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_TaxiInfo]): TaxiInfo | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -402,98 +381,95 @@ function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Ar
 }
 async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: _PhotoId;
-    elevation: [] | [bigint];
+    elevation: [] | [number];
     stageId: _StageId;
     blob: _ExternalBlob;
     description: string;
-    timestamp: _Timestamp;
+    timestamp: bigint;
     uploadedBy: Principal;
 }): Promise<{
     id: PhotoId;
-    elevation?: bigint;
+    elevation?: number;
     stageId: StageId;
     blob: ExternalBlob;
     description: string;
-    timestamp: Timestamp;
+    timestamp: bigint;
     uploadedBy: Principal;
 }> {
     return {
         id: value.id,
-        elevation: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.elevation)),
+        elevation: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.elevation)),
         stageId: value.stageId,
-        blob: await from_candid_ExternalBlob_n13(_uploadFile, _downloadFile, value.blob),
+        blob: await from_candid_ExternalBlob_n14(_uploadFile, _downloadFile, value.blob),
         description: value.description,
         timestamp: value.timestamp,
         uploadedBy: value.uploadedBy
     };
 }
-async function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+async function from_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     stageId: _StageId;
     blob: _ExternalBlob;
-    uploadedAt: _Timestamp;
+    uploadedAt: bigint;
 }): Promise<{
     stageId: StageId;
     blob: ExternalBlob;
-    uploadedAt: Timestamp;
+    uploadedAt: bigint;
 }> {
     return {
         stageId: value.stageId,
-        blob: await from_candid_ExternalBlob_n13(_uploadFile, _downloadFile, value.blob),
+        blob: await from_candid_ExternalBlob_n14(_uploadFile, _downloadFile, value.blob),
         uploadedAt: value.uploadedAt
     };
 }
-function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: _StageId;
+    ascentM: bigint;
     dateTo: string;
     endElevation: bigint;
     startElevation: bigint;
     taxiInfo: [] | [_TaxiInfo];
     accommodation: string;
-    estimatedTimeH: bigint;
-    elevationLossM: bigint;
-    distanceKm: bigint;
+    estimatedTimeH: number;
+    distanceKm: number;
     isGipfeltag: boolean;
     endLocation: string;
-    elevationGainM: bigint;
     number: bigint;
     dateFrom: string;
     startLocation: string;
-    highlight: string;
+    descentM: bigint;
 }): {
     id: StageId;
+    ascentM: bigint;
     dateTo: string;
     endElevation: bigint;
     startElevation: bigint;
     taxiInfo?: TaxiInfo;
     accommodation: string;
-    estimatedTimeH: bigint;
-    elevationLossM: bigint;
-    distanceKm: bigint;
+    estimatedTimeH: number;
+    distanceKm: number;
     isGipfeltag: boolean;
     endLocation: string;
-    elevationGainM: bigint;
     number: bigint;
     dateFrom: string;
     startLocation: string;
-    highlight: string;
+    descentM: bigint;
 } {
     return {
         id: value.id,
+        ascentM: value.ascentM,
         dateTo: value.dateTo,
         endElevation: value.endElevation,
         startElevation: value.startElevation,
-        taxiInfo: record_opt_to_undefined(from_candid_opt_n21(_uploadFile, _downloadFile, value.taxiInfo)),
+        taxiInfo: record_opt_to_undefined(from_candid_opt_n22(_uploadFile, _downloadFile, value.taxiInfo)),
         accommodation: value.accommodation,
         estimatedTimeH: value.estimatedTimeH,
-        elevationLossM: value.elevationLossM,
         distanceKm: value.distanceKm,
         isGipfeltag: value.isGipfeltag,
         endLocation: value.endLocation,
-        elevationGainM: value.elevationGainM,
         number: value.number,
         dateFrom: value.dateFrom,
         startLocation: value.startLocation,
-        highlight: value.highlight
+        descentM: value.descentM
     };
 }
 function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
@@ -508,49 +484,11 @@ function from_candid_record_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint
         topped_up_amount: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.topped_up_amount))
     };
 }
-async function from_candid_variant_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    ok: _GpxData;
-} | {
-    err: string;
-}): Promise<{
-    __kind__: "ok";
-    ok: GpxData;
-} | {
-    __kind__: "err";
-    err: string;
-}> {
-    return "ok" in value ? {
-        __kind__: "ok",
-        ok: await from_candid_GpxData_n15(_uploadFile, _downloadFile, value.ok)
-    } : "err" in value ? {
-        __kind__: "err",
-        err: value.err
-    } : value;
-}
-function from_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    ok: null;
-} | {
-    err: string;
-}): {
-    __kind__: "ok";
-    ok: null;
-} | {
-    __kind__: "err";
-    err: string;
-} {
-    return "ok" in value ? {
-        __kind__: "ok",
-        ok: value.ok
-    } : "err" in value ? {
-        __kind__: "err",
-        err: value.err
-    } : value;
-}
-async function from_candid_vec_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Photo>): Promise<Array<Photo>> {
+async function from_candid_vec_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Photo>): Promise<Array<Photo>> {
     return await Promise.all(value.map(async (x)=>await from_candid_Photo_n11(_uploadFile, _downloadFile, x)));
 }
-function from_candid_vec_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Stage>): Array<Stage> {
-    return value.map((x)=>from_candid_Stage_n19(_uploadFile, _downloadFile, x));
+function from_candid_vec_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Stage>): Array<Stage> {
+    return value.map((x)=>from_candid_Stage_n20(_uploadFile, _downloadFile, x));
 }
 async function to_candid_ExternalBlob_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
     return await _uploadFile(value);
@@ -574,12 +512,12 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
     };
 }
 async function to_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    elevation?: bigint;
+    elevation?: number;
     stageId: StageId;
     blob: ExternalBlob;
     description: string;
 }): Promise<{
-    elevation: [] | [bigint];
+    elevation: [] | [number];
     stageId: _StageId;
     blob: _ExternalBlob;
     description: string;
