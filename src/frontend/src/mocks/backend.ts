@@ -249,7 +249,7 @@ export const mockBackend: backendInterface = {
   deletePhoto: async (_photoId, _token) => true,
 
   verifyPassword: async (password: string) => {
-    if (password === "E5Wanderung2026") return "mock-session-token-12345";
+    if (password === "UrlaubSchreiber2026") return "mock-session-token-12345";
     return null;
   },
 

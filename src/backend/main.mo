@@ -13,8 +13,8 @@ actor {
   let photos : List.List<Types.Photo> = List.empty<Types.Photo>();
   let gpxFiles : List.List<Types.GpxData> = List.empty<Types.GpxData>();
   let sessions : Map.Map<Common.SessionToken, Common.Timestamp> = Map.empty<Common.SessionToken, Common.Timestamp>();
-  // Hash of the default shared password "E5Wanderung2026"
-  let passwordHash : Text = Lib.hashPassword("E5Wanderung2026");
+  // Hash of the default shared password "UrlaubSchreiber2026"
+  let passwordHash : Text = Lib.hashPassword("UrlaubSchreiber2026");
 
   include StagesAndPhotosApi(stages, photos, gpxFiles, sessions, passwordHash);
 };
