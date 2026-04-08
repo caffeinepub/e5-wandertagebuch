@@ -1,0 +1,94 @@
+type _ImmutableObjectStorageRefillResult = 
+ record {
+   success: opt bool;
+   topped_up_amount: opt nat;
+ };
+type _ImmutableObjectStorageRefillInformation = record {
+                                                  proposed_top_up_amount:
+                                                   opt nat;};
+type _ImmutableObjectStorageCreateCertificateResult = 
+ record {
+   blob_hash: text;
+   method: text;
+ };
+type Timestamp = int;
+type TaxiInfo = 
+ record {
+   company: text;
+   departureLocation: text;
+   departureTime: text;
+   phone: text;
+   pricePerPerson: text;
+ };
+type StageId = nat;
+type Stage = 
+ record {
+   accommodation: text;
+   dateFrom: text;
+   dateTo: text;
+   distanceKm: nat;
+   elevationGainM: nat;
+   elevationLossM: nat;
+   endElevation: nat;
+   endLocation: text;
+   estimatedTimeH: nat;
+   highlight: text;
+   id: StageId;
+   isGipfeltag: bool;
+   number: nat;
+   startElevation: nat;
+   startLocation: text;
+   taxiInfo: opt TaxiInfo;
+ };
+type SessionToken = text;
+type PhotoInput = 
+ record {
+   "blob": ExternalBlob;
+   description: text;
+   elevation: opt nat;
+   stageId: StageId;
+ };
+type PhotoId = nat;
+type Photo = 
+ record {
+   "blob": ExternalBlob;
+   description: text;
+   elevation: opt nat;
+   id: PhotoId;
+   stageId: StageId;
+   timestamp: Timestamp;
+ };
+type GpxData = 
+ record {
+   "blob": ExternalBlob;
+   stageId: StageId;
+   uploadedAt: Timestamp;
+ };
+type ExternalBlob = blob;
+service : {
+  _immutableObjectStorageBlobsAreLive: (hashes: vec blob) -> (vec bool) query;
+  _immutableObjectStorageBlobsToDelete: () -> (vec blob) query;
+  _immutableObjectStorageConfirmBlobDeletion: (blobs: vec blob) -> ();
+  _immutableObjectStorageCreateCertificate: (blobHash: text) ->
+   (_ImmutableObjectStorageCreateCertificateResult);
+  _immutableObjectStorageRefillCashier: (refillInformation:
+   opt _ImmutableObjectStorageRefillInformation) ->
+   (_ImmutableObjectStorageRefillResult);
+  _immutableObjectStorageUpdateGatewayPrincipals: () -> ();
+  addPhoto: (input: PhotoInput, token: SessionToken) -> (Photo);
+  deletePhoto: (photoId: PhotoId, token: SessionToken) -> (bool);
+  getGpx: (stageId: StageId) -> (variant {
+                                   err: text;
+                                   ok: GpxData;
+                                 }) query;
+  getPhotos: (stageId: StageId) -> (vec Photo) query;
+  getStage: (id: StageId) -> (opt Stage) query;
+  getStages: () -> (vec Stage) query;
+  uploadGpx: (stageId: StageId, "blob": ExternalBlob, token: SessionToken) ->
+   (variant {
+      err: text;
+      ok;
+    });
+  validateSession: (token: SessionToken) -> (bool) query;
+  verifyPassword: (password: text) -> (opt SessionToken);
+}
