@@ -1,5 +1,5 @@
 import List "mo:core/List";
-import Map "mo:core/Map";
+import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
 import Storage "mo:caffeineai-object-storage/Storage";
 import Time "mo:core/Time";
@@ -11,10 +11,9 @@ mixin (
   stages : List.List<Types.Stage>,
   photos : List.List<Types.Photo>,
   gpxFiles : List.List<Types.GpxData>,
-  sessions : Map.Map<Common.SessionToken, Common.Timestamp>,
-  passwordHash : Text,
 ) {
   var nextPhotoId : Nat = 0;
+
   public query func getStages() : async [Types.Stage] {
     Lib.getStages(stages);
   };
@@ -23,11 +22,11 @@ mixin (
     Lib.getStage(stages, id);
   };
 
-  public shared func addPhoto(input : Types.PhotoInput, token : Common.SessionToken) : async Types.Photo {
-    if (not Lib.validateSession(sessions, token)) {
-      Runtime.trap("Nicht autorisiert: ungültiges oder abgelaufenes Token");
+  public shared ({ caller }) func addPhoto(input : Types.PhotoInput) : async Types.Photo {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Nicht autorisiert: Bitte mit Internet Identity anmelden");
     };
-    let photo = Lib.addPhoto(photos, nextPhotoId, input);
+    let photo = Lib.addPhoto(photos, nextPhotoId, input, caller);
     nextPhotoId += 1;
     photo;
   };
@@ -36,29 +35,16 @@ mixin (
     Lib.getPhotos(photos, stageId);
   };
 
-  public shared func deletePhoto(photoId : Common.PhotoId, token : Common.SessionToken) : async Bool {
-    if (not Lib.validateSession(sessions, token)) {
-      Runtime.trap("Nicht autorisiert: ungültiges oder abgelaufenes Token");
+  public shared ({ caller }) func deletePhoto(photoId : Common.PhotoId) : async Bool {
+    if (caller.isAnonymous()) {
+      Runtime.trap("Nicht autorisiert: Bitte mit Internet Identity anmelden");
     };
     Lib.deletePhoto(photos, photoId);
   };
 
-  public shared func verifyPassword(password : Text) : async ?Common.SessionToken {
-    if (Lib.verifyPassword(passwordHash, password)) {
-      Lib.cleanExpiredSessions(sessions);
-      ?Lib.createSession(sessions);
-    } else {
-      null;
-    };
-  };
-
-  public query func validateSession(token : Common.SessionToken) : async Bool {
-    Lib.validateSession(sessions, token);
-  };
-
-  public shared func uploadGpx(stageId : Common.StageId, blob : Storage.ExternalBlob, token : Common.SessionToken) : async { #ok; #err : Text } {
-    if (not Lib.validateSession(sessions, token)) {
-      return #err("Nicht autorisiert: ungültiges oder abgelaufenes Token");
+  public shared ({ caller }) func uploadGpx(stageId : Common.StageId, blob : Storage.ExternalBlob) : async { #ok; #err : Text } {
+    if (caller.isAnonymous()) {
+      return #err("Nicht autorisiert: Bitte mit Internet Identity anmelden");
     };
     let gpxData : Types.GpxData = {
       stageId;

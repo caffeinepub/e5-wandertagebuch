@@ -7,7 +7,6 @@ export type {
   PhotoInput,
   StageId,
   PhotoId,
-  SessionToken,
 } from "./backend";
 
 export interface ElevationPoint {
@@ -18,7 +17,6 @@ export interface ElevationPoint {
 
 export interface AuthState {
   isAuthenticated: boolean;
-  token: string | null;
-  login: (password: string) => Promise<boolean>;
+  login: () => Promise<void>;
   logout: () => void;
 }

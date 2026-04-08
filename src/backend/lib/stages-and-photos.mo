@@ -1,15 +1,10 @@
-import Int "mo:core/Int";
 import List "mo:core/List";
-import Map "mo:core/Map";
-import Nat "mo:core/Nat";
+import Principal "mo:core/Principal";
 import Time "mo:core/Time";
 import Common "../types/common";
 import Types "../types/stages-and-photos";
 
 module {
-  // 24 hours in nanoseconds (precomputed: 24 * 60 * 60 * 1_000_000_000)
-  let SESSION_TTL_NS : Int = 86_400_000_000_000;
-
   public func initStages() : List.List<Types.Stage> {
     let stages = List.empty<Types.Stage>();
     stages.add({
@@ -249,6 +244,7 @@ module {
     photos : List.List<Types.Photo>,
     nextPhotoId : Nat,
     input : Types.PhotoInput,
+    caller : Principal,
   ) : Types.Photo {
     let photo : Types.Photo = {
       id = nextPhotoId;
@@ -257,6 +253,7 @@ module {
       description = input.description;
       elevation = input.elevation;
       timestamp = Time.now();
+      uploadedBy = caller;
     };
     photos.add(photo);
     photo;
@@ -276,65 +273,6 @@ module {
     } else {
       false;
     };
-  };
-
-  public func verifyPassword(storedHash : Text, password : Text) : Bool {
-    // Simple comparison against stored hash (hash computed at init time)
-    let inputHash = hashPassword(password);
-    inputHash == storedHash;
-  };
-
-  // Simple djb2-inspired hash for password — deterministic Text hash
-  public func hashPassword(password : Text) : Text {
-    var hash : Nat = 5381;
-    let bytes = password.encodeUtf8();
-    for (b in bytes.vals()) {
-      let code : Nat = Nat.fromNat8(b);
-      hash := ((hash * 33) + code) % 4294967296;
-    };
-    hash.toText();
-  };
-
-  public func generateSessionToken() : Common.SessionToken {
-    // Generate a pseudo-unique token from current time
-    let t = Time.now();
-    let n : Nat = Int.abs(t);
-    // Mix the time value with simple arithmetic for variance
-    let part1 : Nat = (n * 1000003) % 999999999999999;
-    let part2 : Nat = (n * 1000033 + 987654321) % 999999999999999;
-    part1.toText() # "_" # part2.toText();
-  };
-
-  public func validateSession(
-    sessions : Map.Map<Common.SessionToken, Common.Timestamp>,
-    token : Common.SessionToken,
-  ) : Bool {
-    switch (sessions.get(token)) {
-      case (?expiry) {
-        Time.now() < expiry;
-      };
-      case null { false };
-    };
-  };
-
-  public func cleanExpiredSessions(sessions : Map.Map<Common.SessionToken, Common.Timestamp>) {
-    let now = Time.now();
-    let expiredKeys = List.empty<Common.SessionToken>();
-    for ((token, expiry) in sessions.entries()) {
-      if (now >= expiry) {
-        expiredKeys.add(token);
-      };
-    };
-    for (token in expiredKeys.values()) {
-      sessions.remove(token);
-    };
-  };
-
-  public func createSession(sessions : Map.Map<Common.SessionToken, Common.Timestamp>) : Common.SessionToken {
-    let token = generateSessionToken();
-    let expiry : Common.Timestamp = Time.now() + SESSION_TTL_NS;
-    sessions.add(token, expiry);
-    token;
   };
 
   public func saveGpx(

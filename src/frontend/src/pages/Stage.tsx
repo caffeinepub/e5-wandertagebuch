@@ -5,7 +5,7 @@ import {
   Car,
   Clock,
   Home,
-  Lock,
+  LogIn,
   MapPin,
   Mountain,
   TrendingDown,
@@ -18,7 +18,6 @@ import { toast } from "sonner";
 import { ExternalBlob } from "../backend";
 import { ElevationChart } from "../components/ElevationChart";
 import { InfoCard } from "../components/InfoCard";
-import { LoginModal } from "../components/LoginModal";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -182,10 +181,11 @@ export default function Stage() {
   const navigate = useNavigate();
   const stageId = BigInt(params.id);
 
+  const { login: handleLogin, isAuthenticated, identity } = useAuth();
+
   const { data: stage, isLoading: stageLoading } = useStage(stageId);
   const { data: photos, isLoading: photosLoading } = usePhotos(stageId);
   const { data: gpxData, isLoading: gpxLoading } = useGpx(stageId);
-  const { isAuthenticated, token, isValidating } = useAuth();
   const addPhoto = useAddPhoto();
   const deletePhoto = useDeletePhoto();
   const uploadGpx = useUploadGpx();
@@ -195,17 +195,19 @@ export default function Stage() {
   const [photoElevation, setPhotoElevation] = useState<number | "">("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [loginOpen, setLoginOpen] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   // GPX upload state
   const [gpxFile, setGpxFile] = useState<File | null>(null);
   const [gpxUploading, setGpxUploading] = useState(false);
+  const [gpxProgress, setGpxProgress] = useState(0);
   const [gpxUploadMsg, setGpxUploadMsg] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
   const gpxFileRef = useRef<HTMLInputElement>(null);
+  // Throttle progress updates to avoid excessive re-renders
+  const gpxProgressRef = useRef(0);
 
   // Parsed GPX elevation points
   const [gpxElevPoints, setGpxElevPoints] = useState<ElevationPoint[] | null>(
@@ -294,8 +296,14 @@ export default function Stage() {
       id: p.id.toString(),
     }));
 
+  // Check if current user is the uploader of a photo
+  const isMyPhoto = (uploadedBy: { toString: () => string }) => {
+    if (!identity) return false;
+    return uploadedBy.toString() === identity.getPrincipal().toString();
+  };
+
   const handleUpload = async () => {
-    if (!selectedFile || !token) return;
+    if (!selectedFile) return;
     setUploading(true);
     setUploadProgress(0);
     try {
@@ -310,7 +318,6 @@ export default function Stage() {
           description,
           elevation: photoElevation !== "" ? BigInt(photoElevation) : undefined,
         },
-        token,
       });
       setDescription("");
       setSelectedFile(null);
@@ -326,9 +333,8 @@ export default function Stage() {
   };
 
   const handleDelete = async (photoId: bigint) => {
-    if (!token) return;
     try {
-      await deletePhoto.mutateAsync({ photoId, token, stageId });
+      await deletePhoto.mutateAsync({ photoId, stageId });
       toast.success("Foto gelöscht.");
     } catch {
       toast.error("Fehler beim Löschen.");
@@ -336,15 +342,22 @@ export default function Stage() {
   };
 
   const handleGpxUpload = async () => {
-    if (!gpxFile || !token) return;
+    if (!gpxFile) return;
     setGpxUploading(true);
     setGpxUploadMsg(null);
+    setGpxProgress(0);
+    gpxProgressRef.current = 0;
     try {
       await uploadGpx.mutateAsync({
         stageId,
         file: gpxFile,
-        token,
-        onProgress: () => {},
+        onProgress: (pct: number) => {
+          // Throttle: only update state if progress jumped by ≥5% to avoid excessive re-renders
+          if (pct - gpxProgressRef.current >= 5 || pct >= 100) {
+            gpxProgressRef.current = pct;
+            setGpxProgress(pct);
+          }
+        },
       });
       setGpxFile(null);
       if (gpxFileRef.current) gpxFileRef.current.value = "";
@@ -352,20 +365,22 @@ export default function Stage() {
         type: "success",
         text: "GPX erfolgreich hochgeladen",
       });
-    } catch {
+    } catch (err) {
       setGpxUploadMsg({
         type: "error",
-        text: "Fehler beim Hochladen der GPX-Datei",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Fehler beim Hochladen der GPX-Datei",
       });
     } finally {
       setGpxUploading(false);
+      setGpxProgress(0);
     }
   };
 
   return (
     <div className="space-y-6 pb-8">
-      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
-
       {/* Back navigation */}
       <button
         type="button"
@@ -542,7 +557,7 @@ export default function Stage() {
       </section>
 
       {/* GPX upload section (auth required) */}
-      {isAuthenticated && token && (
+      {isAuthenticated ? (
         <section
           className="bg-card border border-border rounded-xl p-4 shadow-warm space-y-3"
           data-ocid="gpx-upload"
@@ -576,6 +591,22 @@ export default function Stage() {
               data-ocid="gpx-file-input"
             />
           </div>
+          {gpxUploading && (
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs text-muted-foreground font-body">
+                <span>GPX wird hochgeladen…</span>
+                {gpxProgress > 0 && <span>{gpxProgress}%</span>}
+              </div>
+              <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-300"
+                  style={{
+                    width: gpxProgress > 0 ? `${gpxProgress}%` : "100%",
+                  }}
+                />
+              </div>
+            </div>
+          )}
           {gpxUploadMsg && (
             <p
               className={`text-xs font-body ${gpxUploadMsg.type === "success" ? "text-primary" : "text-destructive"}`}
@@ -593,10 +624,10 @@ export default function Stage() {
             data-ocid="gpx-upload-btn"
           >
             <Upload className="w-3.5 h-3.5 mr-1.5" />
-            {gpxUploading ? "GPX wird hochgeladen…" : "Hochladen"}
+            {gpxUploading ? "Wird hochgeladen…" : "Hochladen"}
           </Button>
         </section>
-      )}
+      ) : null}
 
       {/* Photos section */}
       <section className="space-y-4">
@@ -604,22 +635,22 @@ export default function Stage() {
           <h2 className="font-display font-semibold text-xl text-foreground">
             Fotos &amp; Notizen
           </h2>
-          {!isValidating && !isAuthenticated && (
+          {!isAuthenticated && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setLoginOpen(true)}
+              onClick={() => void handleLogin()}
               className="flex items-center gap-1.5 text-xs"
               data-ocid="stage-login-btn"
             >
-              <Lock className="w-3.5 h-3.5" />
+              <LogIn className="w-3.5 h-3.5" />
               Anmelden zum Hochladen
             </Button>
           )}
         </div>
 
         {/* Upload area (auth required) */}
-        {isAuthenticated && token && (
+        {isAuthenticated && (
           <div
             className="bg-card border border-border rounded-xl p-4 space-y-4 shadow-warm"
             data-ocid="photo-upload"
@@ -728,23 +759,25 @@ export default function Stage() {
         )}
 
         {/* Login prompt when not authenticated */}
-        {!isValidating && !isAuthenticated && (
+        {!isAuthenticated && (
           <div
             className="flex items-center gap-3 bg-muted/40 border border-border rounded-xl p-4"
             data-ocid="upload-login-prompt"
           >
             <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <Lock className="w-4 h-4 text-primary" />
+              <LogIn className="w-4 h-4 text-primary" />
             </div>
             <p className="text-sm text-muted-foreground font-body flex-1">
-              Melde dich an, um Fotos und Notizen zu dieser Etappe hinzuzufügen.
+              Melde dich mit Internet Identity an, um Fotos und Notizen
+              hinzuzufügen.
             </p>
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setLoginOpen(true)}
+              onClick={() => void handleLogin()}
               data-ocid="upload-login-btn"
             >
+              <LogIn className="w-3.5 h-3.5 mr-1.5" />
               Anmelden
             </Button>
           </div>
@@ -793,7 +826,7 @@ export default function Stage() {
                     )}
                   </div>
                 )}
-                {isAuthenticated && token && (
+                {isAuthenticated && isMyPhoto(photo.uploadedBy) && (
                   <button
                     type="button"
                     onClick={() => void handleDelete(photo.id)}

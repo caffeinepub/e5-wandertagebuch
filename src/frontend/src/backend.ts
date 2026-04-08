@@ -96,6 +96,7 @@ export interface Photo {
     blob: ExternalBlob;
     description: string;
     timestamp: Timestamp;
+    uploadedBy: Principal;
 }
 export interface Stage {
     id: StageId;
@@ -120,7 +121,12 @@ export type PhotoId = bigint;
 export interface _ImmutableObjectStorageRefillInformation {
     proposed_top_up_amount?: bigint;
 }
-export type SessionToken = string;
+export interface PhotoInput {
+    elevation?: bigint;
+    stageId: StageId;
+    blob: ExternalBlob;
+    description: string;
+}
 export interface TaxiInfo {
     departureLocation: string;
     departureTime: string;
@@ -131,12 +137,6 @@ export interface TaxiInfo {
 export interface _ImmutableObjectStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
-}
-export interface PhotoInput {
-    elevation?: bigint;
-    stageId: StageId;
-    blob: ExternalBlob;
-    description: string;
 }
 export interface GpxData {
     stageId: StageId;
@@ -155,8 +155,8 @@ export interface backendInterface {
     _immutableObjectStorageCreateCertificate(blobHash: string): Promise<_ImmutableObjectStorageCreateCertificateResult>;
     _immutableObjectStorageRefillCashier(refillInformation: _ImmutableObjectStorageRefillInformation | null): Promise<_ImmutableObjectStorageRefillResult>;
     _immutableObjectStorageUpdateGatewayPrincipals(): Promise<void>;
-    addPhoto(input: PhotoInput, token: SessionToken): Promise<Photo>;
-    deletePhoto(photoId: PhotoId, token: SessionToken): Promise<boolean>;
+    addPhoto(input: PhotoInput): Promise<Photo>;
+    deletePhoto(photoId: PhotoId): Promise<boolean>;
     getGpx(stageId: StageId): Promise<{
         __kind__: "ok";
         ok: GpxData;
@@ -167,17 +167,15 @@ export interface backendInterface {
     getPhotos(stageId: StageId): Promise<Array<Photo>>;
     getStage(id: StageId): Promise<Stage | null>;
     getStages(): Promise<Array<Stage>>;
-    uploadGpx(stageId: StageId, blob: ExternalBlob, token: SessionToken): Promise<{
+    uploadGpx(stageId: StageId, blob: ExternalBlob): Promise<{
         __kind__: "ok";
         ok: null;
     } | {
         __kind__: "err";
         err: string;
     }>;
-    validateSession(token: SessionToken): Promise<boolean>;
-    verifyPassword(password: string): Promise<SessionToken | null>;
 }
-import type { ExternalBlob as _ExternalBlob, GpxData as _GpxData, Photo as _Photo, PhotoId as _PhotoId, PhotoInput as _PhotoInput, SessionToken as _SessionToken, Stage as _Stage, StageId as _StageId, TaxiInfo as _TaxiInfo, Timestamp as _Timestamp, _ImmutableObjectStorageRefillInformation as __ImmutableObjectStorageRefillInformation, _ImmutableObjectStorageRefillResult as __ImmutableObjectStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { ExternalBlob as _ExternalBlob, GpxData as _GpxData, Photo as _Photo, PhotoId as _PhotoId, PhotoInput as _PhotoInput, Stage as _Stage, StageId as _StageId, TaxiInfo as _TaxiInfo, Timestamp as _Timestamp, _ImmutableObjectStorageRefillInformation as __ImmutableObjectStorageRefillInformation, _ImmutableObjectStorageRefillResult as __ImmutableObjectStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _immutableObjectStorageBlobsAreLive(arg0: Array<Uint8Array>): Promise<Array<boolean>> {
@@ -264,31 +262,31 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async addPhoto(arg0: PhotoInput, arg1: SessionToken): Promise<Photo> {
+    async addPhoto(arg0: PhotoInput): Promise<Photo> {
         if (this.processError) {
             try {
-                const result = await this.actor.addPhoto(await to_candid_PhotoInput_n8(this._uploadFile, this._downloadFile, arg0), arg1);
+                const result = await this.actor.addPhoto(await to_candid_PhotoInput_n8(this._uploadFile, this._downloadFile, arg0));
                 return from_candid_Photo_n11(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.addPhoto(await to_candid_PhotoInput_n8(this._uploadFile, this._downloadFile, arg0), arg1);
+            const result = await this.actor.addPhoto(await to_candid_PhotoInput_n8(this._uploadFile, this._downloadFile, arg0));
             return from_candid_Photo_n11(this._uploadFile, this._downloadFile, result);
         }
     }
-    async deletePhoto(arg0: PhotoId, arg1: SessionToken): Promise<boolean> {
+    async deletePhoto(arg0: PhotoId): Promise<boolean> {
         if (this.processError) {
             try {
-                const result = await this.actor.deletePhoto(arg0, arg1);
+                const result = await this.actor.deletePhoto(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.deletePhoto(arg0, arg1);
+            const result = await this.actor.deletePhoto(arg0);
             return result;
         }
     }
@@ -354,7 +352,7 @@ export class Backend implements backendInterface {
             return from_candid_vec_n22(this._uploadFile, this._downloadFile, result);
         }
     }
-    async uploadGpx(arg0: StageId, arg1: ExternalBlob, arg2: SessionToken): Promise<{
+    async uploadGpx(arg0: StageId, arg1: ExternalBlob): Promise<{
         __kind__: "ok";
         ok: null;
     } | {
@@ -363,43 +361,15 @@ export class Backend implements backendInterface {
     }> {
         if (this.processError) {
             try {
-                const result = await this.actor.uploadGpx(arg0, await to_candid_ExternalBlob_n10(this._uploadFile, this._downloadFile, arg1), arg2);
+                const result = await this.actor.uploadGpx(arg0, await to_candid_ExternalBlob_n10(this._uploadFile, this._downloadFile, arg1));
                 return from_candid_variant_n23(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.uploadGpx(arg0, await to_candid_ExternalBlob_n10(this._uploadFile, this._downloadFile, arg1), arg2);
+            const result = await this.actor.uploadGpx(arg0, await to_candid_ExternalBlob_n10(this._uploadFile, this._downloadFile, arg1));
             return from_candid_variant_n23(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async validateSession(arg0: SessionToken): Promise<boolean> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.validateSession(arg0);
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.validateSession(arg0);
-            return result;
-        }
-    }
-    async verifyPassword(arg0: string): Promise<SessionToken | null> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.verifyPassword(arg0);
-                return from_candid_opt_n24(this._uploadFile, this._downloadFile, result);
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.verifyPassword(arg0);
-            return from_candid_opt_n24(this._uploadFile, this._downloadFile, result);
         }
     }
 }
@@ -424,9 +394,6 @@ function from_candid_opt_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
 function from_candid_opt_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_TaxiInfo]): TaxiInfo | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_SessionToken]): SessionToken | null {
-    return value.length === 0 ? null : value[0];
-}
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
     return value.length === 0 ? null : value[0];
 }
@@ -440,6 +407,7 @@ async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promi
     blob: _ExternalBlob;
     description: string;
     timestamp: _Timestamp;
+    uploadedBy: Principal;
 }): Promise<{
     id: PhotoId;
     elevation?: bigint;
@@ -447,6 +415,7 @@ async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promi
     blob: ExternalBlob;
     description: string;
     timestamp: Timestamp;
+    uploadedBy: Principal;
 }> {
     return {
         id: value.id,
@@ -454,7 +423,8 @@ async function from_candid_record_n12(_uploadFile: (file: ExternalBlob) => Promi
         stageId: value.stageId,
         blob: await from_candid_ExternalBlob_n13(_uploadFile, _downloadFile, value.blob),
         description: value.description,
-        timestamp: value.timestamp
+        timestamp: value.timestamp,
+        uploadedBy: value.uploadedBy
     };
 }
 async function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {

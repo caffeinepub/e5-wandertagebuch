@@ -1,4 +1,5 @@
 import type { backendInterface, Stage, Photo, ExternalBlob, _ImmutableObjectStorageCreateCertificateResult, _ImmutableObjectStorageRefillInformation, _ImmutableObjectStorageRefillResult } from "../backend";
+import type { Principal } from "@icp-sdk/core/principal";
 
 const makeBlob = (): ExternalBlob =>
   ({
@@ -8,6 +9,8 @@ const makeBlob = (): ExternalBlob =>
       return this as ExternalBlob;
     },
   }) as unknown as ExternalBlob;
+
+const mockPrincipal = { toString: () => "mock-principal", isAnonymous: () => false } as unknown as Principal;
 
 const stages: Stage[] = [
   {
@@ -234,34 +237,26 @@ export const mockBackend: backendInterface = {
     return [];
   },
 
-  addPhoto: async (input, _token) => {
+  addPhoto: async (input) => {
     const photo: Photo = {
       id: BigInt(1),
       stageId: input.stageId,
-      blob: input.blob,
+      blob: makeBlob(),
       description: input.description,
       elevation: input.elevation,
       timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+      uploadedBy: mockPrincipal,
     };
     return photo;
   },
 
-  deletePhoto: async (_photoId, _token) => true,
-
-  verifyPassword: async (password: string) => {
-    if (password === "UrlaubSchreiber2026") return "mock-session-token-12345";
-    return null;
-  },
-
-  validateSession: async (token: string) => {
-    return token === "mock-session-token-12345";
-  },
+  deletePhoto: async (_photoId) => true,
 
   getGpx: async (_stageId: bigint) => {
     return { __kind__: "err" as const, err: "No GPX data" };
   },
 
-  uploadGpx: async (_stageId: bigint, _blob, _token: string) => {
+  uploadGpx: async (_stageId: bigint, _blob) => {
     return { __kind__: "ok" as const, ok: null };
   },
 

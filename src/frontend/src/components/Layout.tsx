@@ -1,9 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { LogIn, LogOut, Mountain } from "lucide-react";
 import type { ReactNode } from "react";
-import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { LoginModal } from "./LoginModal";
 import { Button } from "./ui/button";
 import { Toaster } from "./ui/sonner";
 
@@ -12,8 +10,11 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
-  const { isAuthenticated, logout } = useAuth();
-  const [showLogin, setShowLogin] = useState(false);
+  const {
+    isAuthenticated,
+    login: handleLogin,
+    logout: handleLogout,
+  } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -43,7 +44,7 @@ export function Layout({ children }: LayoutProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={logout}
+              onClick={() => void handleLogout()}
               className="flex-shrink-0"
               data-ocid="header-logout"
             >
@@ -54,7 +55,7 @@ export function Layout({ children }: LayoutProps) {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowLogin(true)}
+              onClick={() => void handleLogin()}
               className="flex-shrink-0"
               data-ocid="header-login"
             >
@@ -86,7 +87,6 @@ export function Layout({ children }: LayoutProps) {
       </footer>
 
       <Toaster richColors position="bottom-right" />
-      <LoginModal open={showLogin} onClose={() => setShowLogin(false)} />
     </div>
   );
 }

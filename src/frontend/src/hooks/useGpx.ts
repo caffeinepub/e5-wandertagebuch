@@ -1,7 +1,7 @@
 import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ExternalBlob, createActor } from "../backend";
-import type { GpxData, SessionToken, StageId } from "../types";
+import type { GpxData, StageId } from "../types";
 
 export function useGpx(stageId: bigint | null) {
   const { actor, isFetching } = useActor(createActor);
@@ -45,21 +45,41 @@ export function useUploadGpx() {
     mutationFn: async ({
       stageId,
       file,
-      token,
       onProgress,
     }: {
       stageId: StageId;
       file: File;
-      token: SessionToken;
       onProgress?: (pct: number) => void;
     }) => {
       if (!actor) throw new Error("Actor not available");
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      let blob = ExternalBlob.fromBytes(bytes);
+
+      // Yield to UI thread before heavy processing so browser doesn't freeze
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+
+      let bytes: Uint8Array<ArrayBuffer>;
+      try {
+        const buffer = await file.arrayBuffer();
+        bytes = new Uint8Array(buffer) as Uint8Array<ArrayBuffer>;
+      } catch (e) {
+        throw new Error(
+          `GPX-Datei konnte nicht gelesen werden: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+
+      let blob: ExternalBlob;
+      try {
+        blob = ExternalBlob.fromBytes(bytes);
+      } catch (e) {
+        throw new Error(
+          `GPX-Datei konnte nicht verarbeitet werden: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+
       if (onProgress) {
         blob = blob.withUploadProgress(onProgress);
       }
-      const result = await actor.uploadGpx(stageId, blob, token);
+
+      const result = await actor.uploadGpx(stageId, blob);
       if (result.__kind__ === "err") throw new Error(result.err);
       return stageId;
     },

@@ -1,20 +1,17 @@
 import List "mo:core/List";
-import Map "mo:core/Map";
 import MixinObjectStorage "mo:caffeineai-object-storage/Mixin";
-import Common "types/common";
 import Types "types/stages-and-photos";
 import Lib "lib/stages-and-photos";
 import StagesAndPhotosApi "mixins/stages-and-photos-api";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   include MixinObjectStorage();
 
   let stages : List.List<Types.Stage> = Lib.initStages();
   let photos : List.List<Types.Photo> = List.empty<Types.Photo>();
   let gpxFiles : List.List<Types.GpxData> = List.empty<Types.GpxData>();
-  let sessions : Map.Map<Common.SessionToken, Common.Timestamp> = Map.empty<Common.SessionToken, Common.Timestamp>();
-  // Hash of the default shared password "UrlaubSchreiber2026"
-  let passwordHash : Text = Lib.hashPassword("UrlaubSchreiber2026");
 
-  include StagesAndPhotosApi(stages, photos, gpxFiles, sessions, passwordHash);
+  include StagesAndPhotosApi(stages, photos, gpxFiles);
 };

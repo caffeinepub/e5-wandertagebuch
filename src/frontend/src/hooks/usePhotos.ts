@@ -1,7 +1,7 @@
 import { useActor } from "@caffeineai/core-infrastructure";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createActor } from "../backend";
-import type { Photo, PhotoInput, SessionToken } from "../types";
+import type { Photo, PhotoInput } from "../types";
 
 export function usePhotos(stageId: bigint | null) {
   const { actor, isFetching } = useActor(createActor);
@@ -20,12 +20,9 @@ export function useAddPhoto() {
   const { actor } = useActor(createActor);
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({
-      input,
-      token,
-    }: { input: PhotoInput; token: SessionToken }) => {
+    mutationFn: async ({ input }: { input: PhotoInput }) => {
       if (!actor) throw new Error("Actor not available");
-      return actor.addPhoto(input, token);
+      return actor.addPhoto(input);
     },
     onSuccess: (photo) => {
       queryClient.invalidateQueries({
@@ -41,11 +38,10 @@ export function useDeletePhoto() {
   return useMutation({
     mutationFn: async ({
       photoId,
-      token,
       stageId,
-    }: { photoId: bigint; token: SessionToken; stageId: bigint }) => {
+    }: { photoId: bigint; stageId: bigint }) => {
       if (!actor) throw new Error("Actor not available");
-      const ok = await actor.deletePhoto(photoId, token);
+      const ok = await actor.deletePhoto(photoId);
       return { ok, stageId };
     },
     onSuccess: ({ stageId }) => {

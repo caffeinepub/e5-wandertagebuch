@@ -40,7 +40,6 @@ type Stage =
    startLocation: text;
    taxiInfo: opt TaxiInfo;
  };
-type SessionToken = text;
 type PhotoInput = 
  record {
    "blob": ExternalBlob;
@@ -57,6 +56,7 @@ type Photo =
    id: PhotoId;
    stageId: StageId;
    timestamp: Timestamp;
+   uploadedBy: principal;
  };
 type GpxData = 
  record {
@@ -75,8 +75,8 @@ service : {
    opt _ImmutableObjectStorageRefillInformation) ->
    (_ImmutableObjectStorageRefillResult);
   _immutableObjectStorageUpdateGatewayPrincipals: () -> ();
-  addPhoto: (input: PhotoInput, token: SessionToken) -> (Photo);
-  deletePhoto: (photoId: PhotoId, token: SessionToken) -> (bool);
+  addPhoto: (input: PhotoInput) -> (Photo);
+  deletePhoto: (photoId: PhotoId) -> (bool);
   getGpx: (stageId: StageId) -> (variant {
                                    err: text;
                                    ok: GpxData;
@@ -84,11 +84,9 @@ service : {
   getPhotos: (stageId: StageId) -> (vec Photo) query;
   getStage: (id: StageId) -> (opt Stage) query;
   getStages: () -> (vec Stage) query;
-  uploadGpx: (stageId: StageId, "blob": ExternalBlob, token: SessionToken) ->
+  uploadGpx: (stageId: StageId, "blob": ExternalBlob) ->
    (variant {
       err: text;
       ok;
     });
-  validateSession: (token: SessionToken) -> (bool) query;
-  verifyPassword: (password: text) -> (opt SessionToken);
 }

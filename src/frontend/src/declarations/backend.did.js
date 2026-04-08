@@ -27,7 +27,6 @@ export const PhotoInput = IDL.Record({
   'blob' : ExternalBlob,
   'description' : IDL.Text,
 });
-export const SessionToken = IDL.Text;
 export const PhotoId = IDL.Nat;
 export const Timestamp = IDL.Int;
 export const Photo = IDL.Record({
@@ -37,6 +36,7 @@ export const Photo = IDL.Record({
   'blob' : ExternalBlob,
   'description' : IDL.Text,
   'timestamp' : Timestamp,
+  'uploadedBy' : IDL.Principal,
 });
 export const GpxData = IDL.Record({
   'stageId' : StageId,
@@ -96,8 +96,8 @@ export const idlService = IDL.Service({
       [],
     ),
   '_immutableObjectStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
-  'addPhoto' : IDL.Func([PhotoInput, SessionToken], [Photo], []),
-  'deletePhoto' : IDL.Func([PhotoId, SessionToken], [IDL.Bool], []),
+  'addPhoto' : IDL.Func([PhotoInput], [Photo], []),
+  'deletePhoto' : IDL.Func([PhotoId], [IDL.Bool], []),
   'getGpx' : IDL.Func(
       [StageId],
       [IDL.Variant({ 'ok' : GpxData, 'err' : IDL.Text })],
@@ -107,12 +107,10 @@ export const idlService = IDL.Service({
   'getStage' : IDL.Func([StageId], [IDL.Opt(Stage)], ['query']),
   'getStages' : IDL.Func([], [IDL.Vec(Stage)], ['query']),
   'uploadGpx' : IDL.Func(
-      [StageId, ExternalBlob, SessionToken],
+      [StageId, ExternalBlob],
       [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
       [],
     ),
-  'validateSession' : IDL.Func([SessionToken], [IDL.Bool], ['query']),
-  'verifyPassword' : IDL.Func([IDL.Text], [IDL.Opt(SessionToken)], []),
 });
 
 export const idlInitArgs = [];
@@ -137,7 +135,6 @@ export const idlFactory = ({ IDL }) => {
     'blob' : ExternalBlob,
     'description' : IDL.Text,
   });
-  const SessionToken = IDL.Text;
   const PhotoId = IDL.Nat;
   const Timestamp = IDL.Int;
   const Photo = IDL.Record({
@@ -147,6 +144,7 @@ export const idlFactory = ({ IDL }) => {
     'blob' : ExternalBlob,
     'description' : IDL.Text,
     'timestamp' : Timestamp,
+    'uploadedBy' : IDL.Principal,
   });
   const GpxData = IDL.Record({
     'stageId' : StageId,
@@ -206,8 +204,8 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     '_immutableObjectStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
-    'addPhoto' : IDL.Func([PhotoInput, SessionToken], [Photo], []),
-    'deletePhoto' : IDL.Func([PhotoId, SessionToken], [IDL.Bool], []),
+    'addPhoto' : IDL.Func([PhotoInput], [Photo], []),
+    'deletePhoto' : IDL.Func([PhotoId], [IDL.Bool], []),
     'getGpx' : IDL.Func(
         [StageId],
         [IDL.Variant({ 'ok' : GpxData, 'err' : IDL.Text })],
@@ -217,12 +215,10 @@ export const idlFactory = ({ IDL }) => {
     'getStage' : IDL.Func([StageId], [IDL.Opt(Stage)], ['query']),
     'getStages' : IDL.Func([], [IDL.Vec(Stage)], ['query']),
     'uploadGpx' : IDL.Func(
-        [StageId, ExternalBlob, SessionToken],
+        [StageId, ExternalBlob],
         [IDL.Variant({ 'ok' : IDL.Null, 'err' : IDL.Text })],
         [],
       ),
-    'validateSession' : IDL.Func([SessionToken], [IDL.Bool], ['query']),
-    'verifyPassword' : IDL.Func([IDL.Text], [IDL.Opt(SessionToken)], []),
   });
 };
 

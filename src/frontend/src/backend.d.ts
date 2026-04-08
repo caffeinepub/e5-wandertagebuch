@@ -21,6 +21,7 @@ export interface Photo {
     blob: ExternalBlob;
     description: string;
     timestamp: Timestamp;
+    uploadedBy: Principal;
 }
 export interface Stage {
     id: StageId;
@@ -42,19 +43,18 @@ export interface Stage {
 }
 export type Timestamp = bigint;
 export type PhotoId = bigint;
-export type SessionToken = string;
+export interface PhotoInput {
+    elevation?: bigint;
+    stageId: StageId;
+    blob: ExternalBlob;
+    description: string;
+}
 export interface TaxiInfo {
     departureLocation: string;
     departureTime: string;
     pricePerPerson: string;
     company: string;
     phone: string;
-}
-export interface PhotoInput {
-    elevation?: bigint;
-    stageId: StageId;
-    blob: ExternalBlob;
-    description: string;
 }
 export interface GpxData {
     stageId: StageId;
@@ -63,8 +63,8 @@ export interface GpxData {
 }
 export type StageId = bigint;
 export interface backendInterface {
-    addPhoto(input: PhotoInput, token: SessionToken): Promise<Photo>;
-    deletePhoto(photoId: PhotoId, token: SessionToken): Promise<boolean>;
+    addPhoto(input: PhotoInput): Promise<Photo>;
+    deletePhoto(photoId: PhotoId): Promise<boolean>;
     getGpx(stageId: StageId): Promise<{
         __kind__: "ok";
         ok: GpxData;
@@ -75,13 +75,11 @@ export interface backendInterface {
     getPhotos(stageId: StageId): Promise<Array<Photo>>;
     getStage(id: StageId): Promise<Stage | null>;
     getStages(): Promise<Array<Stage>>;
-    uploadGpx(stageId: StageId, blob: ExternalBlob, token: SessionToken): Promise<{
+    uploadGpx(stageId: StageId, blob: ExternalBlob): Promise<{
         __kind__: "ok";
         ok: null;
     } | {
         __kind__: "err";
         err: string;
     }>;
-    validateSession(token: SessionToken): Promise<boolean>;
-    verifyPassword(password: string): Promise<SessionToken | null>;
 }

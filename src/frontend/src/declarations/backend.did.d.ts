@@ -23,6 +23,7 @@ export interface Photo {
   'blob' : ExternalBlob,
   'description' : string,
   'timestamp' : Timestamp,
+  'uploadedBy' : Principal,
 }
 export type PhotoId = bigint;
 export interface PhotoInput {
@@ -31,7 +32,6 @@ export interface PhotoInput {
   'blob' : ExternalBlob,
   'description' : string,
 }
-export type SessionToken = string;
 export interface Stage {
   'id' : StageId,
   'dateTo' : string,
@@ -89,19 +89,17 @@ export interface _SERVICE {
     _ImmutableObjectStorageRefillResult
   >,
   '_immutableObjectStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
-  'addPhoto' : ActorMethod<[PhotoInput, SessionToken], Photo>,
-  'deletePhoto' : ActorMethod<[PhotoId, SessionToken], boolean>,
+  'addPhoto' : ActorMethod<[PhotoInput], Photo>,
+  'deletePhoto' : ActorMethod<[PhotoId], boolean>,
   'getGpx' : ActorMethod<[StageId], { 'ok' : GpxData } | { 'err' : string }>,
   'getPhotos' : ActorMethod<[StageId], Array<Photo>>,
   'getStage' : ActorMethod<[StageId], [] | [Stage]>,
   'getStages' : ActorMethod<[], Array<Stage>>,
   'uploadGpx' : ActorMethod<
-    [StageId, ExternalBlob, SessionToken],
+    [StageId, ExternalBlob],
     { 'ok' : null } |
       { 'err' : string }
   >,
-  'validateSession' : ActorMethod<[SessionToken], boolean>,
-  'verifyPassword' : ActorMethod<[string], [] | [SessionToken]>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

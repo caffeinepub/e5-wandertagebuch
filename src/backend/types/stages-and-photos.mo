@@ -36,6 +36,7 @@ module {
     description : Text;
     elevation : ?Nat;
     timestamp : Common.Timestamp;
+    uploadedBy : Principal;
   };
 
   public type PhotoInput = {
